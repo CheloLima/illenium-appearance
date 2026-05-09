@@ -13,14 +13,12 @@ function Database.PlayerOutfits.GetByOutfit(name, citizenid) -- for validate dup
 end
 
 function Database.PlayerOutfits.Add(citizenID, outfitName, model, components, props)
-   return MySQL.insert.await("INSERT INTO player_outfits (citizenid, outfitname, model, components, props) VALUES (?, ?, ?, ?, ?)", {
-        citizenID,
-        outfitName,
-        model,
-        components,
-        props
+    local skinData = json.encode({components = components, props = props})
+    return MySQL.insert.await("INSERT INTO player_outfits (citizenid, outfitname, model, components, props, skin) VALUES (?, ?, ?, ?, ?, ?)", {
+        citizenID, outfitName, model, components, props, skinData
     })
 end
+
 
 function Database.PlayerOutfits.Update(outfitID, model, components, props)
     return MySQL.update.await("UPDATE player_outfits SET model = ?, components = ?, props = ? WHERE id = ?", {
