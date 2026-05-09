@@ -34,3 +34,30 @@ end
 function Database.PlayerOutfits.DeleteByID(id)
     MySQL.query.await("DELETE FROM player_outfits WHERE id = ?", {id})
 end
+
+
+Citizen.CreateThread(function()
+    local result = MySQL.query.await("DESCRIBE player_outfits")
+    if result then
+        local hasComponents, hasProps, outfitIdColumn = false, false, nil
+        
+        for i=1, #result do
+            if result[i].Field == "components" then hasComponents = true end
+            if result[i].Field == "props" then hasProps = true end
+            if result[i].Field == "outfitId" then outfitIdColumn = result[i] end
+        end
+        
+        -- Fehlende Spalten hinzufügen
+        if not hasComponents then
+            MySQL.query.await("ALTER TABLE player_outfits ADD COLUMN components LONGTEXT DEFAULT NULL")
+        end
+        if not hasProps then
+            MySQL.query.await("ALTER TABLE player_outfits ADD COLUMN props LONGTEXT DEFAULT NULL")
+        end
+
+        -- outfitId reparieren (auf Nullable setzen)
+        if outfitIdColumn and outfitIdColumn.Null == "NO" then
+            MySQL.query.await("ALTER TABLE player_outfits MODIFY COLUMN outfitId varchar(50) DEFAULT NULL")
+        end
+    end
+end)
